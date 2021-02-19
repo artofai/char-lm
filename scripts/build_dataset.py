@@ -1,8 +1,9 @@
-import pandas as pd
 import logging
-import click
 from pathlib import Path
 from typing import List
+
+import click
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
 logger = logging.getLogger(__name__)
@@ -27,14 +28,16 @@ def split_and_save(cities: List[str], out_dir: Path, random_state: int) -> None:
     with (out_dir / "full.txt").open("wt", encoding="utf-8") as f:
         f.write("\n".join(cities))
 
-    train_set, val_set = train_test_split(
-        cities, test_size=0.2, random_state=random_state
-    )
+    keeep_set, test_set = train_test_split(cities, test_size=0.2, random_state=random_state)
+
+    train_set, val_set = train_test_split(keeep_set, test_size=0.2, random_state=random_state + 1)
 
     with (out_dir / "train.txt").open("wt", encoding="utf-8") as f:
         f.write("\n".join(train_set))
     with (out_dir / "val.txt").open("wt", encoding="utf-8") as f:
         f.write("\n".join(val_set))
+    with (out_dir / "test.txt").open("wt", encoding="utf-8") as f:
+        f.write("\n".join(test_set))
 
 
 @click.command()
