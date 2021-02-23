@@ -39,3 +39,10 @@ def test_encode_with_oov(tokenizer: CharacterTokenizer):
     text = "abcX"
     encoded = tokenizer.encode(text, include_special_tokens=False)
     assert encoded[3] == tokenizer.tok2idx[tokenizer.oov_token]
+
+
+def test_encode_decode_with_oov(tokenizer: CharacterTokenizer):
+    text = "abcX"
+    encoded = tokenizer.encode(text, include_special_tokens=True)
+    decoded = tokenizer.decode(encoded)
+    assert decoded == tokenizer.sos_token + "abc" + tokenizer.oov_token + tokenizer.eos_token
