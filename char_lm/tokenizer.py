@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 import logging
 from collections import Counter, defaultdict
 from pathlib import Path
+from typing import List
 
+import dill
 import torch
+from torch.nn.utils.rnn import pad_sequence
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +34,13 @@ class CharacterTokenizer:
     def get_vocab_size(self) -> int:
         return len(self.tok2idx)
 
+    def encode_batch(self, texts=List[str], include_special_tokens=True):
+        encoded = [self.encode(t, include_special_tokens=include_special_tokens) for t in texts]
+
+        padded = pad_sequence(encoded, batch_first=True, padding_value=self.pad_index)
+
+        return padded
+
     def encode(self, s: str, include_special_tokens=True) -> torch.LongTensor:
         if include_special_tokens:
             s = [self.sos_token] + list(s) + [self.eos_token]
@@ -39,6 +51,16 @@ class CharacterTokenizer:
     def decode(self, t: torch.LongTensor) -> str:
         decoded = [self.idx2tok[i] for i in t]
         return "".join(decoded)
+
+    def to_file(self, path: Path):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("wb") as f:
+            dill.dump(self, f)
+
+    @staticmethod
+    def from_file(path: Path) -> CharacterTokenizer:
+        with path.open("rb") as f:
+            return dill.load(f)
 
 
 if __name__ == "__main__":
@@ -57,3 +79,5 @@ if __name__ == "__main__":
 
     print("Vocabulary:")
     print(ct.idx2tok)
+
+    ct.to_file(Path("model/tokenizer.dill"))
