@@ -80,4 +80,4 @@ if __name__ == "__main__":
     print("Vocabulary:")
     print(ct.idx2tok)
 
-    ct.to_file(Path("model/tokenizer.dill"))
+    ct.to_file(Path("models/tokenizer.dill"))

@@ -14,7 +14,12 @@ dset = datasets.load_dataset(
     },
 )
 
-tokenizer = CharacterTokenizer.from_file(Path("model/tokenizer.dill"))
+tokenizer = CharacterTokenizer.from_file(Path("models/tokenizer.dill"))
+
+
+class CityDataModule(LightningDataModule):
+    def __init__():
+        super().__init__()
 
 
 def tokenize(batch):
@@ -22,6 +27,10 @@ def tokenize(batch):
 
 
 dset.set_transform(transform=tokenize)
+
+
+dm = LightningDataModule.from_datasets(dset["train"], val_dataset=dset["val"], batch_size=16)
+
 
 print(dset)
 
