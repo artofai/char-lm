@@ -8,11 +8,14 @@ from torch.optim import Adam
 from torch.utils.data.dataloader import DataLoader
 
 from char_lm.tokenizer import CharacterTokenizer
+from argparse import ArgumentParser
 
 
 class CityLanguageModel(pl.LightningModule):
     def __init__(self, vocab_size: int, hidden_size: int, num_layers: int, ignore_index: int):
         super().__init__()
+
+        self.save_hyperparameters()
 
         self.embedding = nn.Embedding.from_pretrained(torch.eye(vocab_size))
 
@@ -24,7 +27,11 @@ class CityLanguageModel(pl.LightningModule):
     def forward(self, x):
         embedded = self.embedding(x)
         rnn, _ = self.lstm(embedded)
-        output = self.fc(rnn)
+
+        output = self.fc(rnn) # output: batch_size x seq len x vocab size
+
+        # need to change output shape to: batch_size x vocab size x seq len
+        output = output.permute(0, 2, 1)
 
         return output
 
@@ -33,12 +40,17 @@ class CityLanguageModel(pl.LightningModule):
         x = batch[:, :-1]
         y = batch[:, 1:]
 
-        # output: batch_size x seq len x vocab size
+        output = self(x)
+        loss = self.criterion(output, y)
+
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        # batch: batch size x seq len (variable)
+        x = batch[:, :-1]
+        y = batch[:, 1:]
+
         output = self.forward(x)
-
-        # need to change output shape to: batch_size x vocab size x seq len
-        output = output.permute(0, 2, 1)
-
         loss = self.criterion(output, y)
 
         return loss
